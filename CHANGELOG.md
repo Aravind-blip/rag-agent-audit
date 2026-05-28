@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning once public releases begin.
 
-## v0.2.0 — Unreleased
+## v0.2.0 — 2026-05-28
 
 ### Added
 - `init` command for generating starter audit configs from templates (`basic`, `flowise`, `fastapi`).
