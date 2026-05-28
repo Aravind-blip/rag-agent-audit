@@ -3,6 +3,7 @@ CLI entry point for rag-agent-audit.
 
 Commands:
   init      Generate a starter audit.yaml from a template
+  inspect   Probe an endpoint and suggest response_mapping
   validate  Validate a config file without running tests
   run       Execute an audit suite
 """
@@ -19,6 +20,7 @@ from rag_agent_audit.adapters.http import HTTPAdapter
 from rag_agent_audit.adapters.mock import MockAdapter
 from rag_agent_audit.config import load_suite
 from rag_agent_audit.init_command import InitError, run_init
+from rag_agent_audit.inspect_command import inspect_endpoint
 from rag_agent_audit.reports.json_report import build_json_report
 from rag_agent_audit.reports.markdown import build_markdown_report
 from rag_agent_audit.reports.terminal import print_terminal_report
@@ -71,6 +73,56 @@ def init(
         console.print(f"  Template : {template}")
         console.print(f"  Next     : rag-agent-audit validate {output}")
         console.print(f"           : rag-agent-audit run {output}")
+
+
+@app.command()
+def inspect(
+    endpoint: str = typer.Option(
+        ...,
+        "--endpoint",
+        help="Endpoint URL to probe (e.g. http://localhost:3000/api/v1/prediction/ID).",
+    ),
+    question: str = typer.Option(
+        "Say hello in one sentence.",
+        "--question",
+        help="Probe question to send.",
+    ),
+    timeout: float = typer.Option(
+        20.0,
+        "--timeout",
+        help="Request timeout in seconds.",
+    ),
+) -> None:
+    """Probe an endpoint and suggest a response_mapping for audit.yaml."""
+    result = inspect_endpoint(endpoint, question, timeout)
+
+    if not result.success:
+        if result.status_code is not None:
+            err_console.print("[red]Endpoint returned an error.[/red]")
+            err_console.print(f"Status: {result.status_code}")
+        else:
+            err_console.print("[red]Endpoint not reachable.[/red]")
+        if result.error:
+            err_console.print(f"Error: {result.error}")
+        raise typer.Exit(1)
+
+    console.print("[green]Endpoint responded successfully.[/green]")
+    console.print(f"Status: {result.status_code}")
+
+    if result.fields:
+        console.print("\nDetected response fields:")
+        col_width = max(len(path) for path, _ in result.fields) + 2
+        for path, type_label in result.fields:
+            console.print(f"  {path:<{col_width}}{type_label}")
+    else:
+        console.print("\n(No fields detected in response.)")
+
+    if result.suggestions:
+        console.print("\nSuggested response_mapping:")
+        for field_name, jsonpath in result.suggestions.items():
+            console.print(f"  {field_name}: {jsonpath}")
+    else:
+        console.print("\n(No response_mapping suggestions — response shape is unrecognised.)")
 
 
 @app.command()
