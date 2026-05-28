@@ -1,0 +1,29 @@
+name: Bug report
+description: Report a reproducible problem in rag-agent-audit
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the command, audit.yaml snippet, and relevant output.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: rag-agent-audit version
+      placeholder: "0.1.0"
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.11"
