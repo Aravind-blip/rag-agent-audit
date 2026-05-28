@@ -22,6 +22,7 @@ from rag_agent_audit.config import load_suite
 from rag_agent_audit.init_command import InitError, run_init
 from rag_agent_audit.inspect_command import inspect_endpoint
 from rag_agent_audit.reports.json_report import build_json_report
+from rag_agent_audit.reports.junit import build_junit_report
 from rag_agent_audit.reports.markdown import build_markdown_report
 from rag_agent_audit.reports.terminal import print_terminal_report
 from rag_agent_audit.runner import run_suite
@@ -140,7 +141,12 @@ def validate(config: Path = typer.Argument(..., help="Path to audit.yaml")) -> N
 @app.command()
 def run(
     config: Path = typer.Argument(..., help="Path to audit.yaml"),
-    format: str = typer.Option("terminal", "--format", "-f", help="Output format: terminal, json, markdown"),  # noqa: E501
+    format: str = typer.Option(  # noqa: A002
+        "terminal",
+        "--format",
+        "-f",
+        help="Output format: terminal, json, markdown, junit",
+    ),
     output: Path | None = typer.Option(None, "--output", "-o", help="Write report to file"),
 ) -> None:
     """Run an audit suite and exit 0 on pass, 1 on failure."""
@@ -176,8 +182,17 @@ def run(
             console.print(f"Markdown report written to {output}")
         else:
             print(report_text)
+    elif format == "junit":
+        report_text = build_junit_report(suite.suite, results)
+        if output:
+            output.write_text(report_text, encoding="utf-8")
+            console.print(f"JUnit XML report written to {output}")
+        else:
+            print(report_text)
     else:
-        err_console.print(f"[red]Unknown format:[/red] '{format}'. Use: terminal, json, markdown")
+        err_console.print(
+            f"[red]Unknown format:[/red] '{format}'. Use: terminal, json, markdown, junit"
+        )
         raise typer.Exit(2)
 
     if failed > 0:
