@@ -94,3 +94,89 @@ def test_forbidden_retrieved_no_debug_data_skips() -> None:
     result = check_forbidden_retrieved_sources(r, ["org_b.pdf"])
     assert result.passed
     assert "debug mode" in result.message.lower() or "skipped" in result.message.lower()
+
+
+# ---------------------------------------------------------------------------
+# Improved diagnostic message structure
+# ---------------------------------------------------------------------------
+
+
+def test_expected_sources_failure_has_check_header() -> None:
+    r = make_response(["other.pdf"])
+    result = check_expected_sources(r, ["refund.pdf"])
+    assert "Check failed: expected_sources" in result.message
+
+
+def test_expected_sources_failure_lists_missing_sources() -> None:
+    r = make_response(["terms.pdf"])
+    result = check_expected_sources(r, ["refund.pdf", "policy.pdf"])
+    assert "  - refund.pdf" in result.message
+    assert "  - policy.pdf" in result.message
+
+
+def test_expected_sources_failure_lists_actual_citations() -> None:
+    r = make_response(["terms.pdf", "faq.pdf"])
+    result = check_expected_sources(r, ["refund.pdf"])
+    assert "  - terms.pdf" in result.message
+    assert "  - faq.pdf" in result.message
+
+
+def test_expected_sources_failure_shows_none_when_citations_empty() -> None:
+    r = make_response([])
+    result = check_expected_sources(r, ["refund.pdf"])
+    assert "(none)" in result.message
+
+
+def test_expected_sources_failure_has_suggestion() -> None:
+    r = make_response([])
+    result = check_expected_sources(r, ["refund.pdf"])
+    assert "Suggestion" in result.message
+
+
+def test_forbidden_sources_failure_has_check_header() -> None:
+    r = make_response(["org_b_compensation.pdf"])
+    result = check_forbidden_sources(r, ["org_b_compensation.pdf"])
+    assert "Check failed: forbidden_sources" in result.message
+
+
+def test_forbidden_sources_failure_lists_forbidden_hit() -> None:
+    r = make_response(["org_a.pdf", "org_b_salary.pdf"])
+    result = check_forbidden_sources(r, ["org_b_salary.pdf"])
+    assert "  - org_b_salary.pdf" in result.message
+
+
+def test_forbidden_sources_failure_lists_all_actual_citations() -> None:
+    r = make_response(["org_a.pdf", "org_b_salary.pdf"])
+    result = check_forbidden_sources(r, ["org_b_salary.pdf"])
+    assert "  - org_a.pdf" in result.message
+    assert "  - org_b_salary.pdf" in result.message
+
+
+def test_forbidden_sources_failure_has_suggestion() -> None:
+    r = make_response(["org_b.pdf"])
+    result = check_forbidden_sources(r, ["org_b.pdf"])
+    assert "Suggestion" in result.message
+
+
+def test_forbidden_retrieved_failure_has_check_header() -> None:
+    r = make_response([], retrieved=["org_b_records.csv"])
+    result = check_forbidden_retrieved_sources(r, ["org_b_records.csv"])
+    assert "Check failed: forbidden_retrieved_sources" in result.message
+
+
+def test_forbidden_retrieved_failure_lists_forbidden_hit() -> None:
+    r = make_response([], retrieved=["org_a.pdf", "org_b_records.csv"])
+    result = check_forbidden_retrieved_sources(r, ["org_b_records.csv"])
+    assert "  - org_b_records.csv" in result.message
+
+
+def test_forbidden_retrieved_failure_lists_actual_retrieved() -> None:
+    r = make_response([], retrieved=["org_a.pdf", "org_b_records.csv"])
+    result = check_forbidden_retrieved_sources(r, ["org_b_records.csv"])
+    assert "  - org_a.pdf" in result.message
+
+
+def test_forbidden_retrieved_failure_has_suggestion() -> None:
+    r = make_response([], retrieved=["org_b.pdf"])
+    result = check_forbidden_retrieved_sources(r, ["org_b.pdf"])
+    assert "Suggestion" in result.message

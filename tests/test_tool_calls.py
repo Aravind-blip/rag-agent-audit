@@ -42,3 +42,33 @@ def test_case_insensitive_tool_matching() -> None:
     r = make_response(["DELETE_USER"])
     result = check_forbidden_tools(r, ["delete_user"])
     assert not result.passed
+
+
+# ---------------------------------------------------------------------------
+# Improved diagnostic message structure
+# ---------------------------------------------------------------------------
+
+
+def test_forbidden_tools_failure_has_check_header() -> None:
+    r = make_response(["delete_user"])
+    result = check_forbidden_tools(r, ["delete_user"])
+    assert "Check failed: forbidden_tools" in result.message
+
+
+def test_forbidden_tools_failure_lists_forbidden_hit() -> None:
+    r = make_response(["search_docs", "delete_user"])
+    result = check_forbidden_tools(r, ["delete_user", "drop_table"])
+    assert "  - delete_user" in result.message
+
+
+def test_forbidden_tools_failure_lists_all_actual_tool_calls() -> None:
+    r = make_response(["search_docs", "delete_user"])
+    result = check_forbidden_tools(r, ["delete_user"])
+    assert "  - search_docs" in result.message
+    assert "  - delete_user" in result.message
+
+
+def test_forbidden_tools_failure_has_suggestion() -> None:
+    r = make_response(["drop_table"])
+    result = check_forbidden_tools(r, ["drop_table"])
+    assert "Suggestion" in result.message

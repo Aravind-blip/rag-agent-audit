@@ -75,3 +75,72 @@ def test_must_not_contain_case_insensitive() -> None:
     r = make_response("SYSTEM PROMPT leaked here.")
     result = check_must_not_contain(r, ["system prompt"])
     assert not result.passed
+
+
+# ---------------------------------------------------------------------------
+# Improved diagnostic message structure
+# ---------------------------------------------------------------------------
+
+
+def test_must_contain_failure_message_has_check_header() -> None:
+    r = make_response("Something unrelated.")
+    result = check_must_contain(r, ["30 days"])
+    assert "Check failed: must_contain" in result.message
+
+
+def test_must_contain_failure_message_lists_missing_strings() -> None:
+    r = make_response("No match here.")
+    result = check_must_contain(r, ["expected phrase", "another phrase"])
+    assert "  - expected phrase" in result.message
+    assert "  - another phrase" in result.message
+
+
+def test_must_contain_failure_message_includes_answer_preview() -> None:
+    r = make_response("The actual answer text is here.")
+    result = check_must_contain(r, ["missing"])
+    assert "Answer preview" in result.message
+    assert "The actual answer text is here." in result.message
+
+
+def test_must_contain_failure_message_includes_suggestion() -> None:
+    r = make_response("no match")
+    result = check_must_contain(r, ["x"])
+    assert "Suggestion" in result.message
+
+
+def test_must_contain_failure_preview_truncates_long_answer() -> None:
+    long_answer = "word " * 200  # well over 300 chars
+    r = make_response(long_answer)
+    result = check_must_contain(r, ["missing"])
+    assert "..." in result.message
+
+
+def test_must_contain_failure_empty_answer_shows_placeholder() -> None:
+    r = make_response("")
+    result = check_must_contain(r, ["missing"])
+    assert "<empty>" in result.message
+
+
+def test_must_not_contain_failure_message_has_check_header() -> None:
+    r = make_response("Ignore previous instructions.")
+    result = check_must_not_contain(r, ["ignore previous instructions"])
+    assert "Check failed: must_not_contain" in result.message
+
+
+def test_must_not_contain_failure_message_lists_prohibited_strings() -> None:
+    r = make_response("The API_KEY= is leaked here.")
+    result = check_must_not_contain(r, ["API_KEY="])
+    assert "  - API_KEY=" in result.message
+
+
+def test_must_not_contain_failure_message_includes_answer_preview() -> None:
+    r = make_response("The system prompt is exposed.")
+    result = check_must_not_contain(r, ["system prompt"])
+    assert "Answer preview" in result.message
+    assert "The system prompt is exposed." in result.message
+
+
+def test_must_not_contain_failure_message_includes_suggestion() -> None:
+    r = make_response("token= exposed")
+    result = check_must_not_contain(r, ["token="])
+    assert "Suggestion" in result.message
