@@ -21,6 +21,7 @@ from rag_agent_audit.adapters.mock import MockAdapter
 from rag_agent_audit.config import load_suite
 from rag_agent_audit.init_command import InitError, run_init
 from rag_agent_audit.inspect_command import inspect_endpoint
+from rag_agent_audit.reports.github_summary import append_to_step_summary, build_github_summary
 from rag_agent_audit.reports.json_report import build_json_report
 from rag_agent_audit.reports.junit import build_junit_report
 from rag_agent_audit.reports.markdown import build_markdown_report
@@ -148,6 +149,11 @@ def run(
         help="Output format: terminal, json, markdown, junit",
     ),
     output: Path | None = typer.Option(None, "--output", "-o", help="Write report to file"),
+    github_summary: bool = typer.Option(
+        False,
+        "--github-summary",
+        help="Append a Markdown summary to $GITHUB_STEP_SUMMARY (GitHub Actions).",
+    ),
 ) -> None:
     """Run an audit suite and exit 0 on pass, 1 on failure."""
     try:
@@ -194,6 +200,11 @@ def run(
             f"[red]Unknown format:[/red] '{format}'. Use: terminal, json, markdown, junit"
         )
         raise typer.Exit(2)
+
+    if github_summary:
+        warning = append_to_step_summary(build_github_summary(suite.suite, results))
+        if warning:
+            err_console.print(f"[yellow]Warning:[/yellow] {warning}")
 
     if failed > 0:
         raise typer.Exit(1)
