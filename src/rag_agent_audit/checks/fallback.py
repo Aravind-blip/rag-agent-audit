@@ -10,6 +10,7 @@ across all tests.
 
 from __future__ import annotations
 
+from rag_agent_audit.checks.diagnostics import format_list, preview_text
 from rag_agent_audit.normalizer import NormalizedResponse
 from rag_agent_audit.result import CheckResult
 from rag_agent_audit.utils.matching import contains_any
@@ -34,20 +35,32 @@ def check_fallback(
     did_fallback = len(hits) > 0
 
     if should_fallback and not did_fallback:
-        return CheckResult(
-            "fallback",
-            False,
-            "Expected a fallback response but the system answered confidently. "
-            f"Fallback patterns checked: {fallback_patterns}",
+        msg = (
+            "Check failed: fallback\n"
+            "Expected fallback/refusal response, but none of the configured\n"
+            "fallback patterns matched.\n\n"
+            "Fallback patterns checked:\n"
+            f"{format_list(fallback_patterns)}\n\n"
+            "Answer preview:\n"
+            f'  "{preview_text(response.answer)}"\n\n'
+            "Suggestion:\n"
+            "  Add a clear fallback policy to the app or update fallback_patterns\n"
+            "  if the app already refused safely with different wording."
         )
+        return CheckResult("fallback", False, msg)
 
     if not should_fallback and did_fallback:
-        return CheckResult(
-            "fallback",
-            False,
-            f"Expected a confident answer but got a fallback response. "
-            f"Matched patterns: {hits}",
+        msg = (
+            "Check failed: fallback\n"
+            "Expected a non-fallback answer, but matched fallback patterns:\n"
+            f"{format_list(hits)}\n\n"
+            "Answer preview:\n"
+            f'  "{preview_text(response.answer)}"\n\n'
+            "Suggestion:\n"
+            "  Confirm whether this test should expect fallback. For secret or\n"
+            "  dangerous-action prompts, should_fallback may need to be true or omitted."
         )
+        return CheckResult("fallback", False, msg)
 
     status = "fell back" if did_fallback else "answered confidently"
     return CheckResult("fallback", True, f"Fallback behavior correct: system {status}.")
