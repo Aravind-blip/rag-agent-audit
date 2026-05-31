@@ -27,6 +27,7 @@ It does not guarantee security, replace access control design, or certify compli
 | `must_not_contain` | Fails if a prohibited string (e.g. prompt injection echo) appears in the answer |
 | `should_fallback` | Fails if the system answers when it should refuse, or refuses when it should answer |
 | `forbidden_tools` | Fails if a prohibited tool (e.g. `delete_user`) was called |
+| `tenant_leakage` | Fails if any citation or retrieved source violates allowed namespace prefixes or contains a forbidden tenant ID |
 
 ## What it does not do
 

@@ -37,6 +37,8 @@ class AuditTestCase(BaseModel):
     must_not_contain: list[str] = Field(default_factory=list)
     forbidden_tools: list[str] = Field(default_factory=list)
     should_fallback: bool | None = None
+    allowed_source_prefixes: list[str] = Field(default_factory=list)
+    forbidden_tenant_ids: list[str] = Field(default_factory=list)
 
     @field_validator("name")
     @classmethod
