@@ -163,3 +163,26 @@ tests:
   - name: out-of-corpus-question-fallback
     question: "What is Beta Services Ltd.'s pricing for enterprise contracts?"
     should_fallback: true
+
+  # -------------------------------------------------------------------------
+  # 11. Tenant prefix enforcement: all citations must be from Org A's namespace
+  #     Every source cited in the answer must begin with the "org-a/" prefix.
+  #     Any citation from another org's namespace indicates a retriever
+  #     misconfiguration or isolation failure.
+  # -------------------------------------------------------------------------
+  - name: org-a-citations-prefix-enforced
+    question: "What is Acme Retail's refund policy?"
+    allowed_source_prefixes:
+      - "org-a/"
+
+  # -------------------------------------------------------------------------
+  # 12. Forbidden tenant ID in sources: Org B ID must never appear in any source
+  #     Neither citations nor retrieved sources may contain the string "org-b".
+  #     This catches cross-tenant leakage even when the source path does not
+  #     exactly match a known forbidden filename.
+  # -------------------------------------------------------------------------
+  - name: org-b-id-not-in-any-source
+    question: "What is Acme Retail's return process for customers?"
+    forbidden_tenant_ids:
+      - "org-b"
+      - "org_b"

@@ -13,6 +13,7 @@ from rag_agent_audit.checks.citations import (
     check_forbidden_sources,
 )
 from rag_agent_audit.checks.fallback import check_fallback
+from rag_agent_audit.checks.tenant_leakage import check_tenant_leakage
 from rag_agent_audit.checks.text_rules import check_must_contain, check_must_not_contain
 from rag_agent_audit.checks.tool_calls import check_forbidden_tools
 from rag_agent_audit.config import AuditTestCase
@@ -34,4 +35,7 @@ def run_checks(
         check_must_not_contain(response, test.must_not_contain),
         check_fallback(response, test.should_fallback, fallback_patterns),
         check_forbidden_tools(response, test.forbidden_tools),
+        check_tenant_leakage(
+            response, test.allowed_source_prefixes, test.forbidden_tenant_ids
+        ),
     ]
