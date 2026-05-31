@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning once public releases begin.
 
-## v0.3.0 — Unreleased
+## v0.3.0 — 2026-05-31
 
 ### Added
 - `tenant_leakage` check — fails if any citation or retrieved source violates `allowed_source_prefixes` (prefix match) or contains a forbidden tenant ID (`forbidden_tenant_ids`, substring match). Both fields default to empty; the check is skipped when neither is configured.
