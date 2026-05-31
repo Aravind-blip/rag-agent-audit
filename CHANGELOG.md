@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.0 — 2026-05-31
+
+### Added
+- `corpus generate-tests` command for generating starter audit YAML from JSONL corpus manifests.
+- Source coverage test generation from manifest paths.
+- Risky filename test generation for source names containing terms like `secret`, `credential`, `password`, `token`, and `api_key`.
+- Tenant-prefix test generation using `allowed_source_prefixes`.
+- Deterministic generated YAML output that validates with `rag-agent-audit validate`.
+
+### Notes
+- Generated audit tests are starter templates and should be reviewed before running against a live endpoint.
+- The command does not read document contents, index files, or run LLM calls.
+
+---
 All notable changes to this project will be documented in this file.
 
 The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning once public releases begin.
