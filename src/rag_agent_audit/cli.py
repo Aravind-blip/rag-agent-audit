@@ -32,6 +32,14 @@ from rag_agent_audit.corpus import (
     record_to_jsonl,
     scan_corpus,
 )
+from rag_agent_audit.corpus_generate import (
+    DEFAULT_ENDPOINT,
+    DEFAULT_MAX_RISKY_TESTS,
+    DEFAULT_MAX_SOURCE_TESTS,
+    DEFAULT_SUITE_NAME,
+    DEFAULT_TENANT_PREFIX_FORMAT,
+    generate_tests_yaml,
+)
 from rag_agent_audit.init_command import InitError, run_init
 from rag_agent_audit.inspect_command import inspect_endpoint
 from rag_agent_audit.reports.github_summary import append_to_step_summary, build_github_summary
@@ -345,6 +353,86 @@ def corpus_stats(
 
     stats = compute_stats(iter_manifest(manifest))
     print(format_stats(stats))
+
+
+# ---------------------------------------------------------------------------
+# corpus generate-tests
+# ---------------------------------------------------------------------------
+
+
+@corpus_app.command("generate-tests")
+def corpus_generate_tests(
+    manifest: Path = typer.Argument(..., help="Path to JSONL manifest file."),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write generated audit YAML to this file (default: stdout).",
+    ),
+    suite: str = typer.Option(
+        DEFAULT_SUITE_NAME,
+        "--suite",
+        help="Suite name to embed in the generated config.",
+    ),
+    endpoint: str = typer.Option(
+        DEFAULT_ENDPOINT,
+        "--endpoint",
+        help="Target endpoint URL to embed in the generated config.",
+    ),
+    max_source_tests: int = typer.Option(
+        DEFAULT_MAX_SOURCE_TESTS,
+        "--max-source-tests",
+        help="Maximum number of source-coverage tests to generate.",
+    ),
+    max_risky_tests: int = typer.Option(
+        DEFAULT_MAX_RISKY_TESTS,
+        "--max-risky-tests",
+        help="Maximum number of risky-filename tests to generate.",
+    ),
+    tenant_prefix_format: str = typer.Option(
+        DEFAULT_TENANT_PREFIX_FORMAT,
+        "--tenant-prefix-format",
+        help=(
+            "Format string for allowed_source_prefixes."
+            " Uses {tenant_id} as the placeholder (e.g. '{tenant_id}/')."
+        ),
+    ),
+) -> None:
+    """Generate a starter audit YAML from a JSONL corpus manifest."""
+    if not manifest.exists():
+        err_console.print(f"[red]Error:[/red] Manifest not found: {manifest}")
+        raise typer.Exit(2)
+
+    yaml_str, result = generate_tests_yaml(
+        iter_manifest(manifest),
+        suite_name=suite,
+        endpoint=endpoint,
+        max_source_tests=max_source_tests,
+        max_risky_tests=max_risky_tests,
+        tenant_prefix_format=tenant_prefix_format,
+    )
+
+    if result.total_test_count == 0:
+        err_console.print(
+            "[yellow]Warning:[/yellow] No tests generated."
+            " The manifest may be empty or contain no usable records."
+        )
+        raise typer.Exit(1)
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(yaml_str, encoding="utf-8")
+        console.print(f"[green]✓[/green] Generated {result.total_test_count} test(s).")
+        console.print(
+            f"  Source coverage : {result.source_test_count}"
+            f"  |  Risky files : {result.risky_test_count}"
+            f"  |  Tenant prefix : {result.tenant_prefix_test_count}"
+        )
+        console.print(f"  Written to {output}")
+        console.print(f"  Next: rag-agent-audit validate {output}")
+    else:
+        # stdout-only path: no extra text — keeps the output pipe-safe.
+        print(yaml_str, end="")
 
 
 if __name__ == "__main__":
