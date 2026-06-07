@@ -39,6 +39,7 @@ class AuditTestCase(BaseModel):
     should_fallback: bool | None = None
     allowed_source_prefixes: list[str] = Field(default_factory=list)
     forbidden_tenant_ids: list[str] = Field(default_factory=list)
+    require_known_sources: bool = False
 
     @field_validator("name")
     @classmethod
@@ -105,6 +106,10 @@ class AuditSuite(BaseModel):
     response_mapping: ResponseMapping = Field(default_factory=ResponseMapping)
     fallback_patterns: list[str] = Field(default_factory=list)
     defaults: SuiteDefaults = Field(default_factory=SuiteDefaults)
+
+    # Optional: path to a JSONL corpus manifest for the known_sources check.
+    # Relative paths are resolved against the audit YAML file at run time.
+    known_sources_manifest: str | None = None
 
     tests: list[AuditTestCase] = Field(default_factory=list)
 

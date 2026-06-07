@@ -217,7 +217,11 @@ def run(
         assert suite.endpoint is not None  # validated by config
         adapter = HTTPAdapter(suite.endpoint, suite.request, suite.response_mapping, suite.defaults)
 
-    results = run_suite(suite, adapter)
+    try:
+        results = run_suite(suite, adapter, config_dir=config.parent)
+    except (FileNotFoundError, ValueError) as e:
+        err_console.print(f"[red]Config error:[/red] {e}")
+        raise typer.Exit(2) from e
     failed = sum(1 for r in results if not r.passed)
 
     if format == "terminal":

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.0 — Unreleased
+
+### Added
+- `known_sources` check — fails if any citation or retrieved source is not present in a JSONL corpus manifest (exact path match). Controlled by `known_sources_manifest` (suite-level path) and `require_known_sources: true` (test-level flag).
+- Manifest path resolution: relative paths in `known_sources_manifest` are resolved against the audit YAML file at run time, so the manifest can live next to the config.
+
+---
+
 ## v0.4.0 — 2026-05-31
 
 ### Added
