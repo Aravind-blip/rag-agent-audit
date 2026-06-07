@@ -1,0 +1,68 @@
+name: Publish to TestPyPI
+
+# Manual dry-run publish to TestPyPI.  Use this to verify the package
+# uploads and installs correctly before cutting a production release.
+#
+# Requires Trusted Publishing to be configured on TestPyPI:
+#   https://test.pypi.org/manage/project/rag-agent-audit/settings/publishing/
+#
+# After publishing, verify the install with:
+#   pip install --index-url https://test.pypi.org/simple/ rag-agent-audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Check package metadata (twine)
+        run: twine check dist/*
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write  # required for Trusted Publishing / OIDC
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/rag-agent-audit
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/

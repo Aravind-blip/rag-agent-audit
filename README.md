@@ -41,6 +41,20 @@ It does not guarantee security, replace access control design, or certify compli
 
 ## Installation
 
+### From PyPI
+
+```bash
+pip install rag-agent-audit
+```
+
+Or, for a CLI tool installed in an isolated environment:
+
+```bash
+pipx install rag-agent-audit
+```
+
+Requires Python 3.10+.
+
 ### From source
 
 ```bash
@@ -49,8 +63,6 @@ cd rag-agent-audit
 pip install -e .
 ```
 
-Requires Python 3.10+.
-
 ### Docker
 
 ```bash
@@ -58,8 +70,6 @@ docker build -t rag-agent-audit .
 ```
 
 No local Python environment required. See [Docker usage](#docker) below.
-
-> After a PyPI release, `pip install rag-agent-audit` will work directly.
 
 ---
 
@@ -322,6 +332,21 @@ See [`examples/flowise/README.md`](examples/flowise/README.md) for setup details
 - **v0.4** — Agent tool sequence checks, MCP tool policy checks
 - **v0.5** — OpenTelemetry export, Langfuse trace import
 - **v1.0** — Stable schema, PyPI release, complete docs
+
+---
+
+## Publishing
+
+Releases are published to PyPI automatically when a GitHub Release is created.
+Publishing uses [Trusted Publishing (OIDC)](https://docs.pypi.org/trusted-publishers/) — no API tokens are stored in the repository.
+
+```
+git tag -a vX.Y.Z -m "vX.Y.Z"
+git push origin vX.Y.Z
+# Create and publish the GitHub Release — CI handles the rest.
+```
+
+See [docs/release.md](docs/release.md) for the full release checklist, TestPyPI dry-run instructions, and Trusted Publishing setup.
 
 ---
 

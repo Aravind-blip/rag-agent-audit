@@ -1,0 +1,49 @@
+name: Package
+
+# Validates that the package builds cleanly, passes twine metadata checks,
+# and that the installed wheel exposes the expected CLI entry point.
+# Runs on every PR and every push to main so packaging regressions are caught
+# before a release is cut.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-check:
+    name: Build, check, smoke-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Check package metadata (twine)
+        run: twine check dist/*
+
+      - name: Smoke-test wheel in a clean environment
+        # Install *only* the wheel (no dev extras, no editable install) to
+        # confirm the entry point and all runtime dependencies are present.
+        run: |
+          python -m venv /tmp/smoke-env
+          /tmp/smoke-env/bin/pip install --quiet dist/*.whl
+          /tmp/smoke-env/bin/rag-agent-audit --help
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist/
+          retention-days: 7
