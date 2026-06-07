@@ -13,6 +13,7 @@ from rag_agent_audit.checks.citations import (
     check_forbidden_sources,
 )
 from rag_agent_audit.checks.fallback import check_fallback
+from rag_agent_audit.checks.known_sources import check_known_sources
 from rag_agent_audit.checks.tenant_leakage import check_tenant_leakage
 from rag_agent_audit.checks.text_rules import check_must_contain, check_must_not_contain
 from rag_agent_audit.checks.tool_calls import check_forbidden_tools
@@ -25,8 +26,19 @@ def run_checks(
     test: AuditTestCase,
     response: NormalizedResponse,
     fallback_patterns: list[str],
+    *,
+    known_sources: frozenset[str] | None = None,
+    manifest_label: str = "",
 ) -> list[CheckResult]:
-    """Run all checks defined on a test case. Returns results in a stable order."""
+    """Run all checks defined on a test case. Returns results in a stable order.
+
+    known_sources
+        ``None`` (default) means no manifest was configured on the suite.
+        Pass a frozenset to enable the ``known_sources`` check.
+
+    manifest_label
+        Display string for the manifest path used in failure diagnostics.
+    """
     return [
         check_expected_sources(response, test.expected_sources),
         check_forbidden_sources(response, test.forbidden_sources),
@@ -37,5 +49,8 @@ def run_checks(
         check_forbidden_tools(response, test.forbidden_tools),
         check_tenant_leakage(
             response, test.allowed_source_prefixes, test.forbidden_tenant_ids
+        ),
+        check_known_sources(
+            response, test.require_known_sources, known_sources, manifest_label
         ),
     ]
