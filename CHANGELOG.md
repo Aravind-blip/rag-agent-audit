@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.0 — Unreleased
+
+### Added
+- `package.yml` CI workflow — builds sdist and wheel on every PR and push to `main`, runs `twine check`, and smoke-tests the installed wheel in a clean virtual environment. Distribution artifacts are uploaded for inspection.
+- `publish-testpypi.yml` workflow — manual (`workflow_dispatch`) publish to TestPyPI using Trusted Publishing (OIDC). No API tokens required.
+- `publish-pypi.yml` workflow — publishes to PyPI when a GitHub Release is published. Uses Trusted Publishing (OIDC) with a dedicated `pypi` environment for approval gating. Separated into `build` and `publish` jobs so the distribution artifact is inspectable before upload.
+- `docs/release.md` — step-by-step release checklist covering version bump, tagging, GitHub Release creation, TestPyPI dry-run, Trusted Publishing setup, and post-release install verification.
+- `twine>=5.0.0` added to `[project.optional-dependencies] dev` for local package validation.
+- Updated `README.md` Installation section with `pip install rag-agent-audit` and `pipx` instructions; added a Publishing section with a link to the release docs.
+
+---
+
 ## v0.6.0 — 2026-06-06
 
 ### Added
