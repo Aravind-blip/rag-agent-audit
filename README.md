@@ -29,6 +29,7 @@ It does not guarantee security, replace access control design, or certify compli
 | `forbidden_tools` | Fails if a prohibited tool (e.g. `delete_user`) was called |
 | `tenant_leakage` | Fails if any citation or retrieved source violates allowed namespace prefixes or contains a forbidden tenant ID |
 | `known_sources` | Fails if any citation or retrieved source is not present in a JSONL corpus manifest (exact path match) |
+| `tool_policy` | Fails if a called tool is outside an allowlist (`allowed_tools`), matches a forbidden glob pattern (`forbidden_tool_patterns`), or was called without explicit approval (`required_approval_tools`) |
 
 ## What it does not do
 
