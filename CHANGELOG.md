@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.6.0 — Unreleased
+## v0.6.0 — 2026-06-06
 
 ### Added
 - `tool_policy` check — enforces three independent sub-rules in a single check result:
