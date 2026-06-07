@@ -41,6 +41,11 @@ class AuditTestCase(BaseModel):
     forbidden_tenant_ids: list[str] = Field(default_factory=list)
     require_known_sources: bool = False
 
+    # v0.6 tool policy
+    allowed_tools: list[str] = Field(default_factory=list)
+    required_approval_tools: list[str] = Field(default_factory=list)
+    forbidden_tool_patterns: list[str] = Field(default_factory=list)
+
     @field_validator("name")
     @classmethod
     def name_must_be_slug(cls, v: str) -> str:
@@ -70,6 +75,7 @@ class ResponseMapping(BaseModel):
     citations: str = "$.citations[*].source"
     retrieved_sources: str = "$.debug.retrieved[*].source"
     tool_calls: str = "$.tool_calls[*].name"
+    approved_tools: str | None = None
 
 
 # ---------------------------------------------------------------------------

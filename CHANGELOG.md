@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.6.0 — Unreleased
+
+### Added
+- `tool_policy` check — enforces three independent sub-rules in a single check result:
+  - `allowed_tools` — fails if any called tool is not in an explicit allowlist (test-level field).
+  - `forbidden_tool_patterns` — fails if any called tool matches an fnmatch glob pattern (test-level field).
+  - `required_approval_tools` — fails if a tool requiring approval was called without appearing in the response's `approved_tools` list; also fails with a configuration error if `approved_tools` is not mapped on the suite.
+- `approved_tools` field on `ResponseMapping` (`str | None`, default `None`). When set to a JSONPath expression, the adapter extracts approved tool names from the response. Existing configs without this field continue to work unchanged.
+- `allowed_tools`, `required_approval_tools`, and `forbidden_tool_patterns` fields on `AuditTestCase` (all default to empty list). All existing test cases without these fields continue to work unchanged.
+- `approved_tools` field on `NormalizedResponse` (`list[str] | None`, default `None`). `None` signals that the mapping was not configured; `[]` signals configured but no approvals present.
+- Example audit config (`examples/agent-tool-policy/`) with six mock-mode test cases covering all three sub-rules.
+
+### Notes
+- Does not connect to live MCP servers or implement any MCP protocol client.
+- `forbidden_tools` (v0.1) and `tool_policy` (v0.6) are independent checks and can be used together.
+
+---
+
 ## v0.5.0 — 2026-06-06
 
 ### Added

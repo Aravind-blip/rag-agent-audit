@@ -24,5 +24,10 @@ class BaseAdapter(ABC):
             citations=[str(v) for v in jsonpath.extract(mapping.citations, raw)],
             retrieved_sources=[str(v) for v in jsonpath.extract(mapping.retrieved_sources, raw)],
             tool_calls=[str(v) for v in jsonpath.extract(mapping.tool_calls, raw)],
+            approved_tools=(
+                [str(v) for v in jsonpath.extract(mapping.approved_tools, raw)]
+                if mapping.approved_tools is not None
+                else None
+            ),
             raw=raw,
         )
