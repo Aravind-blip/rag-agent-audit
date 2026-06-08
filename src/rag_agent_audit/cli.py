@@ -2,12 +2,16 @@
 CLI entry point for rag-agent-audit.
 
 Commands:
-  init         Generate a starter audit.yaml from a template
-  inspect      Probe an endpoint and suggest response_mapping
-  validate     Validate a config file without running tests
-  run          Execute an audit suite
-  corpus scan  Scan a directory tree and produce a JSONL corpus manifest
-  corpus stats Print statistics from a JSONL corpus manifest
+  init                  Generate a starter audit.yaml from a template
+  inspect               Probe an endpoint and suggest response_mapping
+  validate              Validate a config file without running tests
+  run                   Execute an audit suite
+  corpus scan           Scan a directory tree and produce a JSONL corpus manifest
+  corpus stats          Print statistics from a JSONL corpus manifest
+  corpus generate-tests Generate starter audit YAML from a corpus manifest
+  trace import langfuse Import Langfuse JSONL export to normalized trace events
+  trace import otel     Import OTel JSONL span export to normalized trace events
+  trace stats           Print statistics from a normalized trace-events file
 """
 
 from __future__ import annotations
@@ -49,6 +53,14 @@ from rag_agent_audit.reports.markdown import build_markdown_report
 from rag_agent_audit.reports.terminal import print_terminal_report
 from rag_agent_audit.runner import run_suite
 from rag_agent_audit.templates import SUPPORTED_TEMPLATES
+from rag_agent_audit.trace_import import (
+    compute_trace_stats,
+    event_to_jsonl,
+    format_trace_stats,
+    import_langfuse,
+    import_otel,
+    iter_trace_events,
+)
 
 app = typer.Typer(
     name="rag-agent-audit",
@@ -61,6 +73,19 @@ corpus_app = typer.Typer(
     add_completion=False,
 )
 app.add_typer(corpus_app, name="corpus")
+
+trace_app = typer.Typer(
+    name="trace",
+    help="Trace import and inspection commands.",
+    add_completion=False,
+)
+trace_import_app = typer.Typer(
+    name="import",
+    help="Import trace events from external trace formats.",
+    add_completion=False,
+)
+trace_app.add_typer(trace_import_app, name="import")
+app.add_typer(trace_app, name="trace")
 
 console = Console()
 err_console = Console(stderr=True)
@@ -437,6 +462,121 @@ def corpus_generate_tests(
     else:
         # stdout-only path: no extra text — keeps the output pipe-safe.
         print(yaml_str, end="")
+
+
+# ---------------------------------------------------------------------------
+# trace import langfuse
+# ---------------------------------------------------------------------------
+
+
+@trace_import_app.command("langfuse")
+def trace_import_langfuse(
+    input_file: Path = typer.Argument(..., help="Langfuse JSONL export file."),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write normalized trace events to this JSONL file (default: stdout).",
+    ),
+) -> None:
+    """Import Langfuse trace events and write normalized JSONL."""
+    if not input_file.exists():
+        err_console.print(f"[red]Error:[/red] File not found: {input_file}")
+        raise typer.Exit(2)
+
+    try:
+        events = list(import_langfuse(input_file))
+    except ValueError as e:
+        err_console.print(f"[red]Import error:[/red] {e}")
+        raise typer.Exit(2) from e
+
+    if not events:
+        err_console.print(
+            "[yellow]Warning:[/yellow] No events imported."
+            " The file may be empty or contain no valid records."
+        )
+        raise typer.Exit(1)
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with open(output, "w", encoding="utf-8") as fh:
+            for event in events:
+                fh.write(event_to_jsonl(event) + "\n")
+        console.print(f"[green]✓[/green] Imported {len(events)} event(s) from {input_file.name}")
+        console.print(f"  Written to {output}")
+    else:
+        for event in events:
+            print(event_to_jsonl(event))
+
+
+# ---------------------------------------------------------------------------
+# trace import otel
+# ---------------------------------------------------------------------------
+
+
+@trace_import_app.command("otel")
+def trace_import_otel(
+    input_file: Path = typer.Argument(..., help="OpenTelemetry JSONL span export file."),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write normalized trace events to this JSONL file (default: stdout).",
+    ),
+) -> None:
+    """Import OpenTelemetry trace spans and write normalized JSONL."""
+    if not input_file.exists():
+        err_console.print(f"[red]Error:[/red] File not found: {input_file}")
+        raise typer.Exit(2)
+
+    try:
+        events = list(import_otel(input_file))
+    except ValueError as e:
+        err_console.print(f"[red]Import error:[/red] {e}")
+        raise typer.Exit(2) from e
+
+    if not events:
+        err_console.print(
+            "[yellow]Warning:[/yellow] No events imported."
+            " The file may be empty or contain no valid records."
+        )
+        raise typer.Exit(1)
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with open(output, "w", encoding="utf-8") as fh:
+            for event in events:
+                fh.write(event_to_jsonl(event) + "\n")
+        console.print(f"[green]✓[/green] Imported {len(events)} event(s) from {input_file.name}")
+        console.print(f"  Written to {output}")
+    else:
+        for event in events:
+            print(event_to_jsonl(event))
+
+
+# ---------------------------------------------------------------------------
+# trace stats
+# ---------------------------------------------------------------------------
+
+
+@trace_app.command("stats")
+def trace_stats_cmd(
+    events_file: Path = typer.Argument(
+        ..., help="Path to normalized trace-events JSONL file."
+    ),
+) -> None:
+    """Print statistics from a normalized trace-events JSONL file."""
+    if not events_file.exists():
+        err_console.print(f"[red]Error:[/red] File not found: {events_file}")
+        raise typer.Exit(2)
+
+    try:
+        stats = compute_trace_stats(iter_trace_events(events_file))
+    except ValueError as e:
+        err_console.print(f"[red]Import error:[/red] {e}")
+        raise typer.Exit(2) from e
+
+    print(format_trace_stats(stats))
 
 
 if __name__ == "__main__":
