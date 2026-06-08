@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.7.0 — Unreleased
+## v0.7.0 — 2026-06-08
 
 ### Added
 - `package.yml` CI workflow — builds sdist and wheel on every PR and push to `main`, runs `twine check`, and smoke-tests the installed wheel in a clean virtual environment. Distribution artifacts are uploaded for inspection.
