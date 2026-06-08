@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.8.0 — Unreleased
+## v0.8.0 — 2026-06-08
 
 ### Added
 - `rag-agent-audit trace import langfuse <file> [--output]` — imports a Langfuse-like JSONL export and writes normalized trace-events JSONL. Supports `id`/`traceId`/`trace_id`, `spanId`/`span_id`/`observation_id`, string and dict `input`/`output` fields, and all audit list fields (`citations`, `retrieved_sources`, `tool_calls`, `approved_tools`).
