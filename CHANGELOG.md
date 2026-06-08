@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.8.0 — Unreleased
+
+### Added
+- `rag-agent-audit trace import langfuse <file> [--output]` — imports a Langfuse-like JSONL export and writes normalized trace-events JSONL. Supports `id`/`traceId`/`trace_id`, `spanId`/`span_id`/`observation_id`, string and dict `input`/`output` fields, and all audit list fields (`citations`, `retrieved_sources`, `tool_calls`, `approved_tools`).
+- `rag-agent-audit trace import otel <file> [--output]` — imports an OpenTelemetry JSONL span export. Extracts audit fields from `attributes` using `rag.input`, `rag.answer`, `rag.citations`, `rag.retrieved_sources`, `agent.tool_calls`, and `agent.approved_tools`. Accepts both list values and comma-separated strings.
+- `rag-agent-audit trace stats <file>` — prints statistics from a normalized trace-events file: total events, count by source format, events with tool calls / citations / retrieved sources, and sorted unique values for each.
+- `TraceEvent` and `TraceStats` dataclasses in `src/rag_agent_audit/trace_import.py` as the canonical normalized event model.
+- Example trace files (`examples/traces/langfuse-traces.jsonl`, `examples/traces/otel-traces.jsonl`) and `examples/traces/README.md` with field mapping tables.
+
+### Notes
+- Does not connect to Langfuse, any OpenTelemetry collector, or any network resource.
+- Importing trace files does not run audit checks; it only normalizes events for inspection.
+- Blank lines are silently ignored; malformed JSON raises `ValueError` with the filename and line number.
+
+---
+
 ## v0.7.0 — 2026-06-08
 
 ### Added

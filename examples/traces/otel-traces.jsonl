@@ -1,0 +1,3 @@
+{"traceId": "trace-101", "spanId": "span-101", "name": "rag.query", "attributes": {"rag.input": "What is the refund policy?", "rag.answer": "Refunds within 30 days.", "rag.citations": ["org_a/refund_policy.md"], "rag.retrieved_sources": ["org_a/refund_policy.md"], "agent.tool_calls": ["search_docs"], "agent.approved_tools": ["search_docs"]}}
+{"trace_id": "trace-102", "span_id": "span-102", "name": "rag.query", "attributes": {"rag.input": "Are there exceptions?", "rag.answer": "Yes, digital goods are non-refundable.", "rag.citations": "org_a/refund_policy.md,org_a/exceptions.md", "rag.retrieved_sources": "", "agent.tool_calls": "search_docs,get_policy", "agent.approved_tools": ""}}
+{"traceId": "trace-103", "spanId": "span-103", "name": "rag.embed"}

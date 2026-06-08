@@ -295,6 +295,16 @@ rag-agent-audit run FILE            Run an audit suite
   --format terminal|json|markdown|junit
   --output PATH / -o PATH           Write report to file
   --github-summary                  Append Markdown summary to $GITHUB_STEP_SUMMARY
+
+rag-agent-audit corpus scan DIR     Scan a directory tree and write a JSONL corpus manifest
+rag-agent-audit corpus stats FILE   Print statistics from a JSONL corpus manifest
+rag-agent-audit corpus generate-tests FILE   Generate a starter audit YAML from a manifest
+
+rag-agent-audit trace import langfuse FILE   Import Langfuse JSONL export to normalized events
+  --output PATH / -o PATH           Write to file (default: stdout)
+rag-agent-audit trace import otel FILE       Import OTel JSONL spans to normalized events
+  --output PATH / -o PATH           Write to file (default: stdout)
+rag-agent-audit trace stats FILE    Print statistics from a normalized trace-events file
 ```
 
 ---
